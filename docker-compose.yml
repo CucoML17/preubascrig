@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. Backend del Sistema de Gestion Documental CRIG
+  admindocumentosdif:
+    build: .
+    container_name: crig_backend_app
+    mem_limit: 512m
+    ports:
+      - "3002:3002"
+    environment:
+      # Apuntamos al servicio de la base de datos de docker ('crig_db')
+      DB_URL: jdbc:mysql://crig_db:3306/difadminfinanzas?createDatabaseIfNotExist=true&serverTimezone=UTC
+      DB_USER_NAME: root
+      DB_PASSWORD: carlos123
+      # Aqui inyectamos las rutas internas de Linux que definimos en el properties
+      RUTA_DOCUMENTOS: /app/upload/documentos/
+      RUTA_MENSAJES: /app/upload/mensajes/
+      RUTA_RECURSOS_DOCS: file:/app/upload/documentos/
+    restart: always
+    volumes:
+      # Mapeamos los dos volumenes para archivos de la app
+      - crig_documentos_data:/app/upload/documentos
+      - crig_mensajes_data:/app/upload/mensajes
+    depends_on:
+      crig_db:
+        condition: service_healthy
+
+  # 2. Base de Datos MySQL con Persistencia Real
+  crig_db:
+    image: mysql:8.3.0
+    container_name: crig_mysql_db
+    ports:
+      - "3306:3306"  # Puedes usar el 3306 directo si no te choca con uno local, o cambiarlo a 3309 como la guia
+    environment:
+      MYSQL_ROOT_PASSWORD: carlos123
+      MYSQL_DATABASE: difadminfinanzas
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    volumes:
+      # EL VOLUMEN CRUCIAL QUE LE FALTABA A LA GUiA
+      - crig_mysql_data:/var/lib/mysql
+
+# Definicion de todos los Volumenes Persistentes en tu disco duro
+volumes:
+  crig_documentos_data:
+    driver: local
+  crig_mensajes_data:
+    driver: local
+  crig_mysql_data:      # <-- Aqui se guardara la base de datos y nunca se borrara
+    driver: local
