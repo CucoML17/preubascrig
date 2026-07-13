@@ -11,7 +11,7 @@ services:
     environment:
       # Apuntamos al servicio de la base de datos de docker ('crig_db')
       DB_URL: jdbc:mysql://crig_db:3306/difadminfinanzas?createDatabaseIfNotExist=true&serverTimezone=UTC
-      DB_USER_NAME: root
+      DB_USERNAME: root
       DB_PASSWORD: carlos123
       # Aqui inyectamos las rutas internas de Linux que definimos en el properties
       RUTA_DOCUMENTOS: /app/upload/documentos/
